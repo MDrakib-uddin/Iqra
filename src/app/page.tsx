@@ -19,7 +19,7 @@ const emptyForm: Application = {
   studentBn: "", studentEn: "", fatherBn: "", fatherEn: "", fatherMobile: "",
   motherBn: "", motherEn: "", motherMobile: "", studentClass: "3", roll: "",
   upazila: "রামু", institution: "", teacher: "", teacherMobile: "",
-  paymentMethod: "bkash", transactionId: "", payerMobile: "fatherMobile",
+  paymentMethod: "bkash", transactionId: "", payerMobile: "",
   photoDataUrl: "", photoType: ""
 };
 
@@ -32,17 +32,17 @@ const labels: Record<string, string> = {
   institution: "শিক্ষাপ্রতিষ্ঠান", teacher: "শিক্ষক প্রতিনিধির নাম",
   teacherMobile: "শিক্ষক প্রতিনিধির মোবাইল", paymentMethod: "পেমেন্ট পদ্ধতি",
   transactionId: "লেনদেন আইডি (Transaction ID)",
-  payerMobile: "যে নম্বর থেকে পেমেন্ট করেছেন"
+  payerMobile: "যে মোবাইল নম্বর থেকে পেমেন্ট করেছেন"
 };
 
-function Field({ label, name, value, onChange, required = true, type = "text", placeholder, pattern }: {
+function Field({ label, name, value, onChange, required = true, type = "text", placeholder, pattern, inputMode }: {
   label: string; name: keyof Application; value: string; onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  required?: boolean; type?: string; placeholder?: string; pattern?: string;
+  required?: boolean; type?: string; placeholder?: string; pattern?: string; inputMode?: "numeric";
 }) {
   return <div className="field"><label htmlFor={name}>{label}{required ? " *" : ""}</label>
     <input id={name} name={name} type={type} value={value} onChange={onChange}
       required={required} maxLength={name === "institution" ? 200 : 100}
-      placeholder={placeholder} pattern={pattern} />
+      placeholder={placeholder} pattern={pattern} inputMode={inputMode} />
   </div>;
 }
 
@@ -88,7 +88,9 @@ export default function Home() {
 
   function nextToPayment(e: FormEvent<HTMLFormElement>) {
     e.preventDefault(); setError("");
-    if (!validateMobile(form.fatherMobile) || !validateMobile(form.motherMobile) || !validateMobile(form.teacherMobile)) {
+    if ((form.fatherMobile && !validateMobile(form.fatherMobile)) ||
+        (form.motherMobile && !validateMobile(form.motherMobile)) ||
+        !validateMobile(form.teacherMobile)) {
       setError("বাংলাদেশের সঠিক মোবাইল নম্বর লিখুন।"); return;
     }
     if (!form.photoDataUrl) { setError("পরীক্ষার্থীর ছবি আপলোড করুন।"); return; }
@@ -101,13 +103,8 @@ export default function Home() {
       setError("সঠিক Transaction ID লিখুন (৬–৩০টি ইংরেজি অক্ষর, সংখ্যা বা হাইফেন)।");
       return;
     }
-    const payerNumbers: Record<string, string> = {
-      fatherMobile: form.fatherMobile,
-      motherMobile: form.motherMobile,
-      teacherMobile: form.teacherMobile
-    };
-    if (!payerNumbers[form.payerMobile] || !validateMobile(payerNumbers[form.payerMobile])) {
-      setError("পেমেন্টে ব্যবহৃত সঠিক মোবাইল নম্বর নির্বাচন করুন।");
+    if (!validateMobile(form.payerMobile)) {
+      setError("পেমেন্টে ব্যবহৃত সঠিক মোবাইল নম্বর লিখুন।");
       return;
     }
     setError("");
@@ -185,7 +182,7 @@ export default function Home() {
     context.drawImage(logo, mm(64), mm(3), mm(20), mm(20));
     URL.revokeObjectURL(logo.src);
     drawText("ইকরা মেধাবৃত্তি ২০২৬", 74, 32, 11, "#ffffff", 700, "center");
-    drawText("দক্ষিণ ফতেখারকুল,রামু, কক্সবাজার", 74, 40, 7, "#e3fff2", 400, "center");
+    drawText("দক্ষিণ ফতেখাঁরকুল (শিকলঘাট), রামু, কক্সবাজার", 74, 40, 7, "#e3fff2", 400, "center");
     drawText("01815-615530 · 01843-599802", 74, 48, 7, "#e3fff2", 400, "center");
 
     drawText("ডিপোজিট রসিদ", 74, 60, 14, "#192d23", 700, "center");
@@ -205,7 +202,7 @@ export default function Home() {
       ["উপজেলা", saved.upazila],
       ["পেমেন্ট পদ্ধতি", saved.paymentMethod === "bkash" ? "বিকাশ" : "নগদ"],
       ["লেনদেন আইডি", saved.transactionId],
-      ["পেমেন্ট করা নম্বর", saved.payerMobile === "fatherMobile" ? saved.fatherMobile : saved.payerMobile === "motherMobile" ? saved.motherMobile : saved.teacherMobile],
+      ["পেমেন্ট করা নম্বর", saved.payerMobile],
       ["আবেদন ফি", `${fee} টাকা`],
       ["পেমেন্ট অবস্থা", "যাচাই অপেক্ষমাণ"],
       ["পরীক্ষার তারিখ", process.env.NEXT_PUBLIC_EXAM_DATE || "পরে জানানো হবে"],
@@ -239,7 +236,7 @@ export default function Home() {
     drawText("এই রসিদ পেমেন্ট যাচাইয়ের নিশ্চয়তা নয়।", 74, 200, 8, "#5a645f", 400, "center");
     const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a5" });
     pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, 148, 210);
-    const receiptReference = saved.applicationId.replace(/^CPS2026-/, "");
+    const receiptReference = saved.applicationId.replace(/^IQRA2026-/, "");
     pdf.save(`IQRA-${receiptReference}-deposit-receipt.pdf`);
   }
 
@@ -257,7 +254,7 @@ export default function Home() {
     <header className="hero">
       <Image className="logoMark" src={logoImage} alt="ইকরা মডেল একাডেমির লোগো" priority/>
       <h1>ইকরা মেধাবৃত্তি ২০২৬</h1>
-      <p className="location">দক্ষিণ ফতেখারকুল,রামু, কক্সবাজার</p>
+      <p className="location">দক্ষিণ ফতেখাঁরকুল (শিকলঘাট), রামু, কক্সবাজার</p>
       <p>01815-615530 · 01843-599802</p>
     </header>
 
@@ -277,16 +274,17 @@ export default function Home() {
             <Field label={labels.studentEn} name="studentEn" value={form.studentEn} onChange={update}/>
             <Field label={labels.fatherBn} name="fatherBn" value={form.fatherBn} onChange={update}/>
             <Field label={labels.fatherEn} name="fatherEn" value={form.fatherEn} onChange={update}/>
-            <Field label={labels.fatherMobile} name="fatherMobile" value={form.fatherMobile} onChange={update} type="tel" pattern="(\\+?88)?01[3-9][0-9]{8}" placeholder="01XXXXXXXXX"/>
+            <Field label={labels.fatherMobile} name="fatherMobile" value={form.fatherMobile} onChange={update} required={false} type="tel" pattern="(\\+?88)?01[3-9][0-9]{8}" placeholder="01XXXXXXXXX"/>
             <Field label={labels.motherBn} name="motherBn" value={form.motherBn} onChange={update}/>
             <Field label={labels.motherEn} name="motherEn" value={form.motherEn} onChange={update}/>
-            <Field label={labels.motherMobile} name="motherMobile" value={form.motherMobile} onChange={update} type="tel" pattern="(\\+?88)?01[3-9][0-9]{8}" placeholder="01XXXXXXXXX"/>
+            <Field label={labels.motherMobile} name="motherMobile" value={form.motherMobile} onChange={update} required={false} type="tel" pattern="(\\+?88)?01[3-9][0-9]{8}" placeholder="01XXXXXXXXX"/>
             <div className="field"><label htmlFor="studentClass">শ্রেণি *</label>
               <select id="studentClass" name="studentClass" value={form.studentClass} onChange={update} required>
                 <option value="3">তৃতীয়</option>
               </select>
             </div>
-            <Field label={labels.roll} name="roll" value={form.roll} onChange={update} type="number"/>
+            <Field label={labels.roll} name="roll" value={form.roll} onChange={update}
+              inputMode="numeric" pattern="[1-9][0-9]*" placeholder="যেমন: 12"/>
             <div className="field"><label htmlFor="upazila">উপজেলা *</label>
               <input id="upazila" name="upazila" value={form.upazila} readOnly required/>
             </div>
@@ -324,25 +322,16 @@ export default function Home() {
             placeholder="যেমন: 8N4K7P2Q1A"/>
           <span className="help">bKash/Nagad-এর পেমেন্ট মেসেজে পাওয়া Transaction ID লিখুন।</span>
         </div>
-        <fieldset className="payerMobileField">
-          <legend>যে মোবাইল নম্বর থেকে পেমেন্ট করেছেন *</legend>
-          {([
-            ["fatherMobile", "পিতা", form.fatherMobile],
-            ["motherMobile", "মাতা", form.motherMobile],
-            ["teacherMobile", "শিক্ষক প্রতিনিধি", form.teacherMobile]
-          ] as const).map(([key, label, number]) => (
-            <label className="payerMobileOption" key={key}>
-              <input type="radio" name="payerMobile" value={key}
-                checked={form.payerMobile === key} onChange={update}/>
-              <span><strong>{label}</strong><span dir="ltr">{number}</span></span>
-            </label>
-          ))}
-        </fieldset>
+        <div className="field transactionField">
+          <Field label={labels.payerMobile} name="payerMobile" value={form.payerMobile} onChange={update}
+            type="tel" pattern="(\\+?88)?01[3-9][0-9]{8}" placeholder="01XXXXXXXXX"/>
+          <span className="help">যে নম্বর থেকে বিকাশ/নগদে টাকা পাঠিয়েছেন, সেই নম্বরটি লিখুন।</span>
+        </div>
         <div className="summary">
           {[
             ["পরীক্ষার্থী", form.studentBn], ["শ্রেণি", classLabel], ["ক্লাস রোল", form.roll],
             ["প্রতিষ্ঠান", form.institution], ["নির্বাচিত পদ্ধতি", form.paymentMethod === "bkash" ? "বিকাশ" : "নগদ"],
-            ["পেমেন্ট করা নম্বর", form.payerMobile === "fatherMobile" ? form.fatherMobile : form.payerMobile === "motherMobile" ? form.motherMobile : form.teacherMobile],
+            ["পেমেন্ট করা নম্বর", form.payerMobile],
             ["আবেদন ফি", `${fee} টাকা`]
           ].map(([k,v]) => <div className="summaryRow" key={k}><span>{k}</span><span>{v}</span></div>)}
         </div>
@@ -384,7 +373,7 @@ export default function Home() {
           <div className="summaryRow"><span>পেমেন্ট পদ্ধতি</span><span>{saved.paymentMethod === "bkash" ? "বিকাশ" : "নগদ"}</span></div>
           <div className="summaryRow"><span>আবেদন ফি</span><span>{fee} টাকা</span></div>
           <div className="summaryRow"><span>Transaction ID</span><span>{saved.transactionId}</span></div>
-          <div className="summaryRow"><span>পেমেন্ট করা নম্বর</span><span>{saved.payerMobile === "fatherMobile" ? saved.fatherMobile : saved.payerMobile === "motherMobile" ? saved.motherMobile : saved.teacherMobile}</span></div>
+          <div className="summaryRow"><span>পেমেন্ট করা নম্বর</span><span>{saved.payerMobile}</span></div>
           <div className="summaryRow"><span>পেমেন্ট অবস্থা</span><span>যাচাই অপেক্ষমাণ</span></div>
         </div>
         <div className="notice" style={{marginTop: 16}}>ডিপোজিট রসিদে জমা দেওয়া তথ্য ও Transaction ID থাকবে। কর্তৃপক্ষ পেমেন্ট যাচাই করার পরই এটি নিশ্চিত হবে।</div>

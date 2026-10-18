@@ -1,5 +1,5 @@
 /**
- * City Public Scholarship 2026
+ * Ramu Iqra Model Academy Scholarship 2026
  * Attach this Apps Script project to the target Google Sheet.
  *
  * Before deployment:
@@ -9,7 +9,7 @@
  * 4. Copy the /exec URL into GOOGLE_APPS_SCRIPT_URL.
  */
 const SHEET_NAME = "Applications";
-const PHOTO_FOLDER_NAME = "City Public Scholarship Photos 2026";
+const PHOTO_FOLDER_NAME = "Ramu Iqra Model Academy Scholarship Photos 2026";
 
 function setup() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -47,7 +47,7 @@ function setup() {
 }
 
 function doGet() {
-  return ContentService.createTextOutput("City Public Scholarship API is running.");
+  return ContentService.createTextOutput("Ramu Iqra Model Academy Scholarship API is running.");
 }
 
 function doPost(e) {
@@ -62,8 +62,8 @@ function doPost(e) {
     }
 
     const required = [
-      "studentBn", "studentEn", "fatherBn", "fatherEn", "fatherMobile",
-      "motherBn", "motherEn", "motherMobile", "studentClass", "roll",
+      "studentBn", "studentEn", "fatherBn", "fatherEn",
+      "motherBn", "motherEn", "studentClass", "roll",
       "upazila", "institution", "teacher", "teacherMobile",
       "paymentMethod", "transactionId", "payerMobile", "photoBase64", "photoType"
     ];
@@ -74,20 +74,16 @@ function doPost(e) {
     });
 
     const mobilePattern = /^(\+?88)?01[3-9]\d{8}$/;
-    ["fatherMobile", "motherMobile", "teacherMobile"].forEach(function(key) {
-      if (!mobilePattern.test(String(data[key]).trim())) throw new Error("Invalid mobile number.");
+    ["fatherMobile", "motherMobile", "teacherMobile", "payerMobile"].forEach(function(key) {
+      if (data[key] !== undefined && data[key] !== "" &&
+          !mobilePattern.test(String(data[key]).trim())) throw new Error("Invalid mobile number.");
     });
+    if (!data.payerMobile) throw new Error("Payer mobile number is required.");
     if (String(data.studentClass) !== "3") throw new Error("Invalid class.");
     if (data.upazila !== "রামু") throw new Error("Invalid upazila.");
     if (!/^[1-9]\d*$/.test(String(data.roll))) throw new Error("Invalid roll.");
     if (!["bkash", "nagad"].includes(data.paymentMethod)) throw new Error("Invalid payment method.");
     if (!/^[A-Za-z0-9-]{6,30}$/.test(String(data.transactionId).trim())) throw new Error("Invalid transaction ID.");
-    const payerMobileOptions = {
-      fatherMobile: String(data.fatherMobile),
-      motherMobile: String(data.motherMobile),
-      teacherMobile: String(data.teacherMobile)
-    };
-    if (!Object.prototype.hasOwnProperty.call(payerMobileOptions, data.payerMobile)) throw new Error("Invalid payer mobile selection.");
     if (!["image/jpeg", "image/png"].includes(data.photoType)) throw new Error("Only JPG and PNG images are allowed.");
 
     const bytes = Utilities.base64Decode(data.photoBase64);
@@ -103,7 +99,7 @@ function doPost(e) {
     const ext = data.photoType === "image/png" ? ".png" : ".jpg";
     photo = folder.createFile(Utilities.newBlob(bytes, data.photoType, Utilities.getUuid() + ext));
 
-    const id = "CPS2026-" + Utilities.getUuid().slice(0, 8).toUpperCase();
+    const id = "IQRA2026-" + Utilities.getUuid().slice(0, 8).toUpperCase();
     const submittedAt = new Date();
 
     sheet.appendRow([
@@ -116,7 +112,7 @@ function doPost(e) {
       safeCell(data.teacher), safeCell(data.teacherMobile),
       data.paymentMethod, String(data.fee || "300"),
       "PENDING VERIFICATION - TRANSACTION ID SUBMITTED", photo.getUrl(),
-      safeCell(data.transactionId), safeCell(payerMobileOptions[data.payerMobile])
+      safeCell(data.transactionId), safeCell(data.payerMobile)
     ]);
 
     return json_({ success: true, applicationId: id, submittedAt: submittedAt.toISOString() });

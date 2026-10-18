@@ -1,10 +1,12 @@
-# সিটি পাবলিক মেধাবৃত্তি ২০২৬ — Next.js Project
+# রামু ইকরা মডেল একাডেমি মেধাবৃত্তি ২০২৬ — Next.js Project
 
 এই প্রজেক্টে আছে:
 - ধাপ ১: শিক্ষার্থীর তথ্য ও ছবি
-- ধাপ ২: বিকাশ/নগদ পদ্ধতি, Transaction ID এবং পেমেন্টে ব্যবহৃত পিতা/মাতা/শিক্ষক প্রতিনিধির নম্বর নির্বাচন (কোনো PIN/OTP/স্ক্রিনশট নয়)
+- ধাপ ২: বিকাশ/নগদ পদ্ধতি, Transaction ID এবং পেমেন্টে ব্যবহৃত মোবাইল নম্বর সরাসরি লেখা (কোনো PIN/OTP/স্ক্রিনশট নয়)
 - ধাপ ৩: তথ্য যাচাই করে final submit
 - ধাপ ৪: Application ID ও PDF deposit receipt download
+- পিতা ও মাতার মোবাইল নম্বর ঐচ্ছিক; শিক্ষক প্রতিনিধির এবং পেমেন্ট করা নম্বর আবশ্যক
+- নতুন আবেদন আইডির format: `IQRA2026-XXXXXXXX`
 - Google Sheets-এ আবেদন সংরক্ষণ এবং Google Drive-এ শিক্ষার্থীর ছবি রাখা
 - Vercel deployment-এর উপযোগী Next.js API route
 
@@ -41,10 +43,12 @@ Browser-এ http://localhost:3000 খুলুন।
 2. Spreadsheet-এ Extensions → Apps Script নির্বাচন করুন।
 3. `google-apps-script/Code.gs` ফাইলের কোড Apps Script editor-এ বসান।
 4. Project Settings → Script Properties-এ `API_SECRET` নামে property যোগ করুন। Value হবে `.env.local`-এর `SCHOLARSHIP_API_SECRET`-এর ঠিক একই secret। এটি কখনো frontend code-এ লিখবেন না।
-5. `setup()` function একবার Run করুন এবং Google permission অনুমোদন করুন। এতে `Applications` sheet header, Transaction ID ও Payer Mobile column এবং ছবি রাখার Drive folder তৈরি হবে।
+5. `setup()` function একবার Run করুন এবং Google permission অনুমোদন করুন। এতে `Applications` sheet header, Transaction ID ও Payer Mobile column এবং `Ramu Iqra Model Academy Scholarship Photos 2026` নামের Drive folder তৈরি হবে।
 6. Deploy → New deployment → Web app নির্বাচন করুন। Execute as: **Me**। Who has access: **Anyone** (প্রয়োজন হলে আপনার Google Workspace-এর নীতি অনুযায়ী সেটিং বদলাতে হবে)।
 7. Deploy করুন এবং `/exec` URL কপি করে `.env.local`-এর `GOOGLE_APPS_SCRIPT_URL`-এ বসান।
 8. `npm run dev` দিয়ে একটি test application submit করে Sheet এবং Drive পরীক্ষা করুন।
+
+আগে Apps Script deploy করা থাকলে, পরিবর্তিত `Code.gs` কার্যকর করতে Deploy → Manage deployments → Edit → New version নির্বাচন করে redeploy করুন। নতুন ছবি নির্ধারিত Academy folder-এ যাবে; পুরোনো folder-এর ছবি সরানো হবে না।
 
 **গুরুত্বপূর্ণ:** Apps Script Web App public endpoint হিসেবে প্রকাশিত হলেও, script secret না মিললে request প্রত্যাখ্যান করবে। Secret শক্তিশালী রাখুন, কাউকে শেয়ার করবেন না। প্রতিষ্ঠানের Google Workspace policy যদি anonymous access নিষিদ্ধ করে, এই deployment পদ্ধতি কাজ নাও করতে পারে।
 

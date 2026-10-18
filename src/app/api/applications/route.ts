@@ -19,8 +19,8 @@ export async function POST(request: NextRequest) {
 
     const data = await request.json();
     const required = [
-      "studentBn", "studentEn", "fatherBn", "fatherEn", "fatherMobile",
-      "motherBn", "motherEn", "motherMobile", "studentClass", "roll",
+      "studentBn", "studentEn", "fatherBn", "fatherEn",
+      "motherBn", "motherEn", "studentClass", "roll",
       "upazila", "institution", "teacher", "teacherMobile",
       "paymentMethod", "transactionId", "payerMobile", "photoBase64", "photoType"
     ];
@@ -31,10 +31,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    for (const key of ["fatherMobile", "motherMobile", "teacherMobile"]) {
-      if (!mobilePattern.test(data[key].trim())) {
+    for (const key of ["fatherMobile", "motherMobile", "teacherMobile", "payerMobile"]) {
+      if (data[key] !== undefined && data[key] !== "" &&
+          (typeof data[key] !== "string" || !mobilePattern.test(data[key].trim()))) {
         return NextResponse.json({ success: false, message: "মোবাইল নম্বর সঠিক নয়।" }, { status: 400 });
       }
+    }
+    if (!data.payerMobile || typeof data.payerMobile !== "string") {
+      return NextResponse.json({ success: false, message: "পেমেন্টে ব্যবহৃত মোবাইল নম্বর আবশ্যক।" }, { status: 400 });
     }
 
     if (data.studentClass !== "3") {
@@ -51,14 +55,6 @@ export async function POST(request: NextRequest) {
     }
     if (!/^[A-Za-z0-9-]{6,30}$/.test(data.transactionId.trim())) {
       return NextResponse.json({ success: false, message: "Transaction ID সঠিক নয়।" }, { status: 400 });
-    }
-    const payerMobileOptions: Record<string, string> = {
-      fatherMobile: data.fatherMobile,
-      motherMobile: data.motherMobile,
-      teacherMobile: data.teacherMobile
-    };
-    if (!Object.prototype.hasOwnProperty.call(payerMobileOptions, data.payerMobile)) {
-      return NextResponse.json({ success: false, message: "পেমেন্টে ব্যবহৃত মোবাইল নম্বর নির্বাচন সঠিক নয়।" }, { status: 400 });
     }
     if (!["image/jpeg", "image/png"].includes(data.photoType)) {
       return NextResponse.json({ success: false, message: "শুধু JPG বা PNG ছবি গ্রহণযোগ্য।" }, { status: 400 });
