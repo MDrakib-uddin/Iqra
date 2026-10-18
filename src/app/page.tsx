@@ -207,7 +207,7 @@ export default function Home() {
       ["পেমেন্ট অবস্থা", "যাচাই অপেক্ষমাণ"],
       ["পরীক্ষার তারিখ", process.env.NEXT_PUBLIC_EXAM_DATE || "পরে জানানো হবে"],
       ["পরীক্ষার সময়", process.env.NEXT_PUBLIC_EXAM_TIME || "পরে জানানো হবে"],
-      ["পরীক্ষাকেন্দ্র", process.env.NEXT_PUBLIC_EXAM_CENTER || "পরে জানানো হবে"]
+      ["পরীক্ষাকেন্দ্র", "রামু ইকরা মডেল একাডেমি - দক্ষিণ ফতেখাঁরকুল (শিকলঘাট), রামু, কক্সবাজার"]
     ];
     let y = 73;
     rows.forEach(([label, value], index) => {
